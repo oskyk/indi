@@ -19,8 +19,6 @@ BuildRequires: libfli-devel
 BuildRequires: libnova-devel
 BuildRequires: qt5-qtbase-devel
 BuildRequires: systemd
-BuildRequires: libogg-devel
-BuildRequires: libtheora-devel
 BuildRequires: fftw-devel
 BuildRequires: gmock-devel
 BuildRequires: rtl-sdr-devel
