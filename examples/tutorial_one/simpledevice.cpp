@@ -167,3 +167,24 @@ bool SimpleDevice::Handshake()
 
     return true;
 }
+
+bool SimpleDevice::updateProperties()
+{
+    INDI::DefaultDevice::updateProperties();
+
+    if (isConnected())
+    {
+        defineProperty(&LightSP);
+        defineProperty(&LightIntensityNP);
+        defineProperty(&ParkCapSP);
+    }
+    else
+    {
+        deleteProperty(LightSP.name);
+        deleteProperty(LightIntensityNP.name);
+        deleteProperty(ParkCapSP.name);
+    }
+
+    updateLightBoxProperties();
+    return true;
+}

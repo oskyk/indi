@@ -35,6 +35,7 @@ protected:
     const char *getDefaultName() override;
 
     virtual bool initProperties() override;
+    bool updateProperties() override;
 
     // From Dust Cap
     virtual IPState ParkCap() override;
