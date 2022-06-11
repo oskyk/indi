@@ -1647,6 +1647,14 @@ SET(pegasus_fm_SRC
 add_executable(indi_pegasus_flatmaster ${pegasus_fm_SRC})
 target_link_libraries(indi_pegasus_flatmaster indidriver)
 install(TARGETS indi_pegasus_flatmaster RUNTIME DESTINATION bin)
+
+
+SET(simpledevice_SRC
+        ${CMAKE_CURRENT_SOURCE_DIR}/drivers/auxiliary/simpledevice.cpp)
+
+add_executable(indi_simpledevice ${simpledevice_SRC})
+target_link_libraries(indi_simpledevice indidriver)
+install(TARGETS indi_simpledevice RUNTIME DESTINATION bin)
 ########### Pegasus Pocket Power Box Driver ###############
 
 SET(pegasus_ppb_SRC
