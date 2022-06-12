@@ -95,9 +95,9 @@ bool SimpleDevice::EnableLightBox(bool enable)
     if(!enable) {
         prevBrightness = 0;
     }
-    char command[3] = {0};
+    char command[FLAT_CMD] = {0};
 
-    snprintf(command, 3, "00%03d", prevBrightness);
+    snprintf(command, FLAT_CMD, "00%03d", prevBrightness);
     sendCommand(command);
     return true;
 }
@@ -106,9 +106,9 @@ bool SimpleDevice::SetLightBoxBrightness(uint16_t value)
 {
     prevBrightness = value;
 
-    char command[3] = {0};
+    char command[FLAT_CMD] = {0};
 
-    snprintf(command, 3, "00%03d", prevBrightness);
+    snprintf(command, FLAT_CMD, "00%03d", prevBrightness);
     sendCommand(command);
     return true;
 }
