@@ -31,6 +31,11 @@ public:
     SimpleDevice();
     virtual ~SimpleDevice() = default;
 
+    virtual bool ISNewText(const char *dev, const char *name, char *texts[], char *names[], int n) override;
+    virtual bool ISNewSwitch(const char *dev, const char *name, ISState *states, char *names[], int n) override;
+    virtual bool ISNewNumber(const char *dev, const char *name, double values[], char *names[], int n) override;
+    virtual bool ISSnoopDevice(XMLEle *root) override;
+
 protected:
     const char *getDefaultName() override;
 
@@ -44,8 +49,10 @@ protected:
     // From Light Box
     virtual bool SetLightBoxBrightness(uint16_t value) override;
     virtual bool EnableLightBox(bool enable) override;
+
+    virtual bool saveConfigItems(FILE *fp) override;
 private:
-    bool sendCommand(const char *command, int len);
+    bool sendCommand(const char *command);
     bool Handshake();
 
     uint8_t prevCoverStatus{ 0xFF };

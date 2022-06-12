@@ -32,6 +32,9 @@
 #include <inttypes.h>
 #include <sys/ioctl.h>
 
+#define FLAT_CMD 6
+#define FLAT_RES 8
+
 std::unique_ptr<SimpleDevice> simpleDevice(new SimpleDevice());
 
 SimpleDevice::SimpleDevice() : LightBoxInterface(this, true)
@@ -77,13 +80,13 @@ const char *SimpleDevice::getDefaultName()
 
 IPState SimpleDevice::ParkCap()
 {
-    sendCommand("close", 5);
+    sendCommand("close");
     return IPS_IDLE;
 }
 
 IPState SimpleDevice::UnParkCap()
 {
-    sendCommand("open", 4);
+    sendCommand("opena");
     return IPS_IDLE;
 }
 
@@ -94,8 +97,8 @@ bool SimpleDevice::EnableLightBox(bool enable)
     }
     char command[3] = {0};
 
-    snprintf(command, 3, "%03d", prevBrightness);
-    sendCommand(command, 3);
+    snprintf(command, 3, "00%03d", prevBrightness);
+    sendCommand(command);
     return true;
 }
 
@@ -105,27 +108,74 @@ bool SimpleDevice::SetLightBoxBrightness(uint16_t value)
 
     char command[3] = {0};
 
-    snprintf(command, 3, "%03d", prevBrightness);
-    sendCommand(command, 3);
+    snprintf(command, 3, "00%03d", prevBrightness);
+    sendCommand(command);
     return true;
 }
 
-bool SimpleDevice::sendCommand(const char *command, int len)
+bool SimpleDevice::ISNewNumber(const char *dev, const char *name, double values[], char *names[], int n)
+{
+    if (processLightBoxNumber(dev, name, values, names, n))
+        return true;
+
+    return INDI::DefaultDevice::ISNewNumber(dev, name, values, names, n);
+}
+
+bool SimpleDevice::ISNewText(const char *dev, const char *name, char *texts[], char *names[], int n)
+{
+    if (dev != nullptr && strcmp(dev, getDeviceName()) == 0)
+    {
+        if (processLightBoxText(dev, name, texts, names, n))
+            return true;
+    }
+
+    return INDI::DefaultDevice::ISNewText(dev, name, texts, names, n);
+}
+
+bool SimpleDevice::ISNewSwitch(const char *dev, const char *name, ISState *states, char *names[], int n)
+{
+    if (dev != nullptr && strcmp(dev, getDeviceName()) == 0)
+    {
+        if (processDustCapSwitch(dev, name, states, names, n))
+            return true;
+
+        if (processLightBoxSwitch(dev, name, states, names, n))
+            return true;
+    }
+
+    return INDI::DefaultDevice::ISNewSwitch(dev, name, states, names, n);
+}
+
+bool SimpleDevice::ISSnoopDevice(XMLEle *root)
+{
+    snoopLightBox(root);
+
+    return INDI::DefaultDevice::ISSnoopDevice(root);
+}
+
+bool SimpleDevice::saveConfigItems(FILE *fp)
+{
+    INDI::DefaultDevice::saveConfigItems(fp);
+
+    return saveLightBoxConfigItems(fp);
+}
+
+bool SimpleDevice::sendCommand(const char *command)
 {
     int nbytes_written = 0, nbytes_read = 0, rc = -1;
-    char errstr[MAXRBUF] = {0};
+    char errstr[100] = {0};
     int i = 0;
 
     tcflush(PortFD, TCIOFLUSH);
 
     LOGF_DEBUG("CMD <%s>", command);
 
-    char buffer[len + 1] = {0}; // space for terminating null
-    snprintf(buffer, len + 1, "%s\n", command);
+    char buffer[FLAT_CMD + 1] = {0}; // space for terminating null
+    snprintf(buffer, FLAT_CMD + 1, "%s\n", command);
 
     for (i = 0; i < 3; i++)
     {
-        if ((rc = tty_write(PortFD, buffer, len, &nbytes_written)) != TTY_OK)
+        if ((rc = tty_write(PortFD, buffer, FLAT_CMD, &nbytes_written)) != TTY_OK)
         {
             usleep(50000);
             continue;
@@ -135,7 +185,7 @@ bool SimpleDevice::sendCommand(const char *command, int len)
 
     if (i == 3)
     {
-        tty_error_msg(rc, errstr, MAXRBUF);
+        tty_error_msg(rc, errstr, 100);
         LOGF_ERROR("%s error: %s.", command, errstr);
         return false;
     }
